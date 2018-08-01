@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  availabilitymonitor:
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.affinity:host_label_ne: frontend=yes
+
+volumes:
+  availability_data:
+    driver: rancher-nfs

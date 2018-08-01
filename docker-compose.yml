@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  availabilitymonitor:
+    image: eeacms/inspire.harvest.availability.monitor
+    volumes:
+      - availability_data:/var/local/inspire/availability_monitor/data
+
+volumes:
+  availability_data:
+    driver: local
