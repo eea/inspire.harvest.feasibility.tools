@@ -23,6 +23,14 @@ fi
 HOST="$(echo ${URL/$USER@/} | cut -d/ -f1)"
 PORT="$(echo ${HOST} | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
 
+if [ -z "$PORT" ]; then
+	if [ ${PROTO}="https" ]; then
+		PORT=443
+	else
+		PORT=80
+	fi
+fi
+
 # Extract the path, if any
 RPATH="$(echo ${URL} | grep / | cut -d/ -f2-)"
 
@@ -39,10 +47,10 @@ echo "   path: $RPATH"
 
 jmeter -n -t test_download_svc.jmx \
 	-Jusers=10 \
-	-Jrampup=20 \
-	-Jduration=60 \
-	-Jproto=${PROTO:-http} \
+	-Jrampup=60 \
+	-Jduration=300 \
+	-Jproto=${PROTO} \
 	-Jhost=${HOST} \
-	-Jport=${PORT:-80} \
+	-Jport=${PORT} \
 	-Jpath=${RPATH} \
 	-l ${RESULTS_DIR}/results -e -o ${RESULTS_DIR}/html_reports
