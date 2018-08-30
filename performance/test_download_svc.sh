@@ -46,7 +46,7 @@ echo "   port: $PORT"
 echo "   path: $RPATH"
 
 jmeter -n -t test_download_svc.jmx \
-	-Jusers=10 \
+	-Jusers=11 \
 	-Jrampup=60 \
 	-Jduration=300 \
 	-Jproto=${PROTO} \
