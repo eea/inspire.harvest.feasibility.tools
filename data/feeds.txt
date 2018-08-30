@@ -1,0 +1,6 @@
+https://gis.tirol.gv.at/inspire/downloadservice/DownloadServiceFeed.xml
+http://vogis.cnv.at/inspire-download/natura_2000_epsg_3035_uuid_d18f358a-26fe-4144-8feb-7f805485f90a_atom.xml
+http://geoservices.wallonie.be/inspire/atom/PS_Service.xml
+http://wwwd3.ymparisto.fi/d3/INSPIREAtom/PS_natura2000.xml
+https://geodata.nationaalgeoregister.nl/natura2000/atom/natura2000.xml
+https://www.mapama.gob.es/ide/inspire/atom/CategBiodiversidad/downloadservice.xml
