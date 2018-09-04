@@ -1,56 +1,54 @@
 #!/usr/bin/env bash
 
-# Extract the protocol
-PROTO="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+function run_jmeter() {
+	jmeter -n -t test_download_svc.jmx \
+		-Jusers=11 \
+		-Jrampup=60 \
+		-Jduration=300 \
+		-Jproto=$1 \
+		-Jhost=$2 \
+		-Jport=$3 \
+		-Jpath=$4 \
+		-l $5/results -e -o $5/html_reports
+}
 
-# Remove the protocol
-URL="$(echo ${1/$PROTO/})"
-
-# Strip the :// from the protocol
-PROTO="$(echo ${PROTO} | sed -e's,^\(.*\)://.*,\1,g')"
-
-# Extract the user, if any
-USERPASS="$(echo ${URL} | grep @ | cut -d@ -f1)"
-PASS="$(echo ${USERPASS} | grep : | cut -d: -f2)"
-
-if [ -n "$PASS" ]; then
-  USER="$(echo ${USERPASS} | grep : | cut -d: -f1)"
-else
-  USER=${USERPASS}
-fi
-
-# Extract the host
-HOST="$(echo ${URL/$USER@/} | cut -d/ -f1)"
-PORT="$(echo ${HOST} | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
-
-if [ -z "$PORT" ]; then
-	if [ ${PROTO}="https" ]; then
-		PORT=443
+OLDIFS=$IFS
+IFS=$'\t'
+while read COUNTRY_CODE SERVICE_TYPE URL_HASH SCHEME HOST PORT RPATH
+do
+	URL="${SCHEME}://${HOST}${RPATH//[$'\t\r\n ']}"
+	if [ "${COUNTRY_CODE:0:1}" = "#" ]
+	then
+		echo "Skipping ${URL}"
 	else
-		PORT=80
+		NOTIFY="
+		Test parameters
+		===============
+		Country      : ${COUNTRY_CODE}
+		Service type : ${SERVICE_TYPE}
+		URL hash     : ${URL_HASH}
+		Scheme       : ${SCHEME}
+		Host         : ${HOST}
+		Port         : ${PORT}
+		Path         : ${RPATH//[$'\t\r\n ']}
+		"
+		NOTIFY="${NOTIFY//[$'\t']}"
+		echo $NOTIFY
+
+		RESULTS_DIR=results/${COUNTRY_CODE}/${URL_HASH}
+		mkdir -p ${RESULTS_DIR}
+
+		METADATA="
+		{
+		    \"country_code\": \""${COUNTRY_CODE}"\",
+		    \"service_type\": \""${SERVICE_TYPE}"\",
+		    \"url\": \""${URL}"\"
+		}
+		"
+		METADATA="${METADATA//[$'\t']}"
+		echo $METADATA > ${RESULTS_DIR}/metadata.json
+
+		run_jmeter $SCHEME $HOST $PORT $RPATH $RESULTS_DIR
 	fi
-fi
-
-# Extract the path, if any
-RPATH="$(echo ${URL} | grep / | cut -d/ -f2-)"
-
-RESULTS_DIR=results/${HOST}/${RPATH}
-mkdir -p ${RESULTS_DIR}
-
-echo "Testing $1"
-echo "  proto: $PROTO"
-echo "   user: $USER"
-echo "   pass: $PASS"
-echo "   host: $HOST"
-echo "   port: $PORT"
-echo "   path: $RPATH"
-
-jmeter -n -t test_download_svc.jmx \
-	-Jusers=11 \
-	-Jrampup=60 \
-	-Jduration=300 \
-	-Jproto=${PROTO} \
-	-Jhost=${HOST} \
-	-Jport=${PORT} \
-	-Jpath=${RPATH} \
-	-l ${RESULTS_DIR}/results -e -o ${RESULTS_DIR}/html_reports
+done < $1
+IFS=${OLDIFS}
