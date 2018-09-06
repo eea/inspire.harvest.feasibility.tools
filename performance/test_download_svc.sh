@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 function run_jmeter() {
-	#		-Jusers=11 \ -Jrampup=60 \ -Jduration=300 \
 	jmeter -n -t test_download_svc.jmx \
-		-Jusers=1 \
-		-Jduration=10 \
+		-Jusers=11 \
+		-Jrampup=60 \
+		-Jduration=300 \
 		-Jproto=$1 \
 		-Jhost=$2 \
 		-Jport=$3 \
