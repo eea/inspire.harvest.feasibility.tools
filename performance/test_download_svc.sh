@@ -1,16 +1,32 @@
 #!/usr/bin/env bash
 
 function run_jmeter() {
+	#		-Jusers=11 \ -Jrampup=60 \ -Jduration=300 \
 	jmeter -n -t test_download_svc.jmx \
-		-Jusers=11 \
-		-Jrampup=60 \
-		-Jduration=300 \
+		-Jusers=1 \
+		-Jduration=10 \
 		-Jproto=$1 \
 		-Jhost=$2 \
 		-Jport=$3 \
 		-Jpath=$4 \
-		-l $5/results -e -o $5/html_reports
+		-Jagg_path=$5 \
+		-l $5/results -j $5/jmeter.log -e -o $5/html_reports
 }
+
+function report_aggregate() {
+	JMeterPluginsCMD.sh \
+	--plugin-type AggregateReport \
+	--generate-csv $1/aggregate.csv \
+	--input-jtl $1/results
+}
+
+function report_latency() {
+	JMeterPluginsCMD.sh \
+	--plugin-type LatenciesOverTime \
+	--generate-csv $1/latency.csv \
+	--input-jtl $1/results
+}
+
 
 OLDIFS=$IFS
 IFS=$'\t'
@@ -49,6 +65,8 @@ do
 		echo $METADATA > ${RESULTS_DIR}/metadata.json
 
 		run_jmeter $SCHEME $HOST $PORT $RPATH $RESULTS_DIR
+		report_aggregate $RESULTS_DIR
+		report_latency $RESULTS_DIR
 	fi
 done < $1
 IFS=${OLDIFS}
