@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>INSPIRE Download Services Performance Tests Results Index</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <style>
+        body {
+            padding-top: 70px;
+        }
+        td {
+            max-width: 400px; /* add this */
+            overflow: hidden;
+        }
+        a {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="#">INSPIRE Download Services Performance Tests Results</a>
+        <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">-->
+            <!--<span class="navbar-toggler-icon"></span>-->
+        <!--</button>-->
+        <!--<div class="collapse navbar-collapse" id="navbarNav">-->
+            <div class="navbar-nav">
+                {% for country_code in results -%}
+                    <a class="nav-item nav-link" href="#{{ country_code }}">{{ country_code }}</a>
+                {% endfor-%}
+            </div>
+        <!--</div>-->
+    </nav>
+    {% for country_code, country_results in results.items() -%}
+        <div class="row" id="{{ country_code }}">
+            <div class="col-1"></div>
+            <div class="col-10">
+                <h3>{{ country_results['country_name'] }}</h3>
+                {% for svc_type, svc_name in service_types.items() -%}
+                    {% if country_results['service_types'][svc_type] -%}
+                        <h4>{{ svc_name }}</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">Service URL</th>
+                                    <th scope="col" class="text-center">Requests</th>
+                                    <th scope="col" class="text-center">Latency [mean] (s)</th>
+                                    <th scope="col" class="text-center">Error %</th>
+                                    <th scope="col" class="text-center">Throughput</th>
+                                    <th scope="col" class="text-center">Received KB/s</th>
+                                    <th scope="col" class="text-center">Full results</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in country_results['service_types'][svc_type] -%}
+                                    <tr>
+                                        <td><a href="{{ test['url'] }}" target="_blank">{{ test['url'] }}</a></td>
+                                        <td class="text-center align-middle">{{ test['stats']['samples'] }}</td>
+                                        {% if test['stats']['latency'] > 10 -%}
+                                            <td class="text-center align-middle table-danger">{{ test['stats']['latency'] }}</td>
+                                        {% else %}
+                                            <td class="text-center align-middle">{{ test['stats']['latency'] }}</td>
+                                        {% endif -%}
+                                        <td class="text-center align-middle">{{ test['stats']['error_rate'] }}</td>
+                                        <td class="text-center align-middle">{{ test['stats']['throughput'] }}</td>
+                                        {% if test['stats']['received_kbps'] * 0.008 < 0.5 -%}
+                                            <td class="text-center align-middle table-danger">{{ test['stats']['received_kbps'] }}</td>
+                                        {% else -%}
+                                            <td class="text-center align-middle">{{ test['stats']['received_kbps'] }}</td>
+                                        {% endif -%}
+                                        <td class="text-center align-middle"><a href="{{ test['test_dir']}}/html_reports/index.html" target="_blank">Open</a></td>
+                                    </tr>
+                                {% endfor -%}
+                            </tbody>
+                        </table>
+                    {% endif -%}
+                {% endfor -%}
+            </div>
+            <br>
+            <div class="col-1"></div>
+        </div>
+    {% endfor -%}
+    <!--<div class="col-3"></div>-->
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+</body>
+</html>
