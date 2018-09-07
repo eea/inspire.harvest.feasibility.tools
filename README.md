@@ -20,6 +20,12 @@ The monitoring script ``monitoring/availability.py`` takes an input file contain
 ## Performance Testing
 
 A JMeter test plan for download services, and several related utilities are available in the directory `performance`.
+Recommended JVM memory settings for JMeter are:
+
+	-Xms1g -Xmx4g -XX:MaxMetaspaceSize=1g   
+
+Lower limits produced out of memory errors and heap dumps for some of the services tested.
+
 
 ### Preparing test data
 
@@ -48,6 +54,7 @@ Notes:
  - make sure there is an empty last line in the file, otherwise the last service won't be tested.
  - you can comment lines in the CSV file with ``#`` to skip testing the respective services.
 
+
 ### Test execution
 
 Start the tests using the test runner script:
@@ -65,6 +72,7 @@ For each service listed in the CSV file, the test runner will:
 - run JMeter in non-GUI mode with the test plan ``test_download_svc.jmx``
 - produce the HTML dashboard report
 - run the JMeter plugins ``AggregateReport`` and ``LatenciesOverTime``
+
 
 ### Test artifacts
 
