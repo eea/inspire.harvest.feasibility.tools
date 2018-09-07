@@ -19,7 +19,7 @@ def get_country_dirs(root_dir):
 
 
 def get_test_dirs(root_dir):
-    return Path(root_dir).glob("*")
+    return [p for p in Path(root_dir).glob("*") if p.is_dir()]
 
 
 def render_template(template_path, context):
