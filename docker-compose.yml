@@ -1,11 +1,24 @@
 version: '2'
 
 services:
-  availabilitymonitor:
-    image: eeacms/inspire.harvest.availability.monitor
+  inspire-availability-monitor:
+    image: eeacms/inspire.harvest.monitor
+    environment:
+      - CHECK_NAME=availability
+      - AVAILABILITY_CHECK_INTERVAL=300
     volumes:
-      - availability_data:/var/local/inspire/availability_monitor/data
+      - availability-data:/var/local/inspire_monitor/out
+  inspire-reliability-monitor:
+    image: eeacms/inspire.harvest.monitor
+    environment:
+      - CHECK_NAME=reliability
+      - AVAILABILITY_CHECK_INTERVAL=43200
+    volumes:
+      - reliability-data:/var/local/inspire_monitor/out
+
 
 volumes:
-  availability_data:
+  availability-data:
+    driver: local
+  reliability-data:
     driver: local
