@@ -6,16 +6,13 @@ import requests
 from monitoring.common import HTTPCheckResult, Monitor, get_service_urls
 
 
-logger = logging.getLogger("availability_check")
+logger = logging.getLogger("reliability_check")
 info, debug, error = logger.info, logger.debug, logger.error
 
 
-def check_availability(url, url_id, output_path, csv_write_lock, timeout):
+def check_reliability(url, url_id, output_path, csv_write_lock, timeout):
     """
-    Checks the availability of a URL, and appends the result to a CSV file.
-    URL's are verified using a streaming GET request - the connection is severed
-    once the headers are received, to avoid impacting services with a sizeable
-    response content size.
+    Checks the reliability of a URL, and appends the result to a CSV file.
 
     Parameters:
           url(str) : The URL to check
@@ -29,14 +26,9 @@ def check_availability(url, url_id, output_path, csv_write_lock, timeout):
     info(f"Checking {url}")
     try:
         with requests.get(url, timeout=timeout, stream=True) as r:
-            try:
-                content_length = int(r.headers["Content-Length"])
-            except (KeyError, ValueError):
-                content_length = None
-
             result = HTTPCheckResult(
                 status_code=r.status_code,
-                content_length=content_length,
+                content_length=len(r.content),
                 content_type=r.headers.get("Content-Type"),
                 duration=r.elapsed.total_seconds(),
                 last_modified=r.headers.get("Last-Modified"),
@@ -68,7 +60,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Run the INSPIRE endpoints availability monitor"
+        description="Run the INSPIRE endpoints reliability monitor"
     )
     parser.add_argument("--endpoints-csv", help="Path to CSV with endpoint URL's")
     parser.add_argument("--output", help="Path to monitoring output file")
@@ -77,9 +69,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--check-interval",
-        default=300,
+        default=43200,
         type=int,
-        help="Interval to check every endpoint at, in seconds. Defaults to 5 min.",
+        help="Interval to check every endpoint at, in seconds. Defaults to 12h.",
     )
 
     args = parser.parse_args()
@@ -89,8 +81,9 @@ if __name__ == "__main__":
     urls = get_service_urls(args.endpoints_csv, col_no=args.urls_col_no)
     monitor = Monitor(
         service_urls=urls,
-        check_func=check_availability,
+        check_func=check_reliability,
         output_path=args.output,
         check_interval=args.check_interval,
     )
+
     monitor.run()
