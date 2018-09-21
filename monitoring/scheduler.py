@@ -32,12 +32,14 @@ class ThreadedScheduler(schedule.Scheduler):
             job.last_run = datetime.datetime.now()
             job._schedule_next_run()
 
-    def run_continuously(self, interval=1):
+    def run_continuously(self, interval=1, run_all_first=False):
         stop_continuous_run = threading.Event()
 
         class ScheduleThread(threading.Thread):
             @classmethod
             def run(cls):
+                if run_all_first: 
+                    self.run_all()
                 while not stop_continuous_run.is_set():
                     self.run_pending()
                     time.sleep(interval)
@@ -55,4 +57,3 @@ def run_threaded_job(job):
     job_thread = threading.Thread(target=job)
     job_thread.start()
     return job_thread
-
