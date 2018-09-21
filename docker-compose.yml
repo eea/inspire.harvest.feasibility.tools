@@ -3,16 +3,16 @@ version: '2'
 services:
   inspire-availability-monitor:
     image: eeacms/inspire.harvest.monitor
+    command: availability
     environment:
-      - CHECK_NAME=availability
-      - AVAILABILITY_CHECK_INTERVAL=300
+      - CHECK_INTERVAL=300
     volumes:
       - availability-data:/var/local/inspire_monitor/out
   inspire-reliability-monitor:
     image: eeacms/inspire.harvest.monitor
+    command: reliability
     environment:
-      - CHECK_NAME=reliability
-      - AVAILABILITY_CHECK_INTERVAL=43200
+      - CHECK_INTERVAL=43200
     volumes:
       - reliability-data:/var/local/inspire_monitor/out
 

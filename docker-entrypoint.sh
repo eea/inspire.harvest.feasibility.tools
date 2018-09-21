@@ -1,21 +1,21 @@
 #!/bin/sh
 
-if [ -z "$CHECK_NAME" ]; then
-  echo "CHECK_NAME is undefined"
-  exit 1
+if [ -z "CHECK_INTERVAL" ]; then
+  export CHECK_INTERVAL=300
 fi
-
-if [ -z "$AVAILABILITY_CHECK_INTERVAL" ]; then
-  export AVAILABILITY_CHECK_INTERVAL=300
-fi
-
 
 case "$1" in
-    run)
-        exec python monitoring/${CHECK_NAME}.py \
-            --endpoints-csv data/monitoring_targets.csv \
-            --output out/${CHECK_NAME}_$(date +%Y%m%d_%H%M%S).csv \
-            --check-interval ${AVAILABILITY_CHECK_INTERVAL}
+    availability)
+        exec python monitoring/availability.py \
+            --endpoints-csv data/availability_service_targets.csv \
+            --output out/availability_$(date +%Y%m%d_%H%M%S).csv \
+            --check-interval ${CHECK_INTERVAL}
+        ;;
+    reliability)
+        exec python monitoring/reliability.py \
+            --endpoints-csv data/reliability_service_targets.csv \
+            --output out/reliability_$(date +%Y%m%d_%H%M%S) \
+            --check-interval ${CHECK_INTERVAL}
         ;;
     *)
 esac
