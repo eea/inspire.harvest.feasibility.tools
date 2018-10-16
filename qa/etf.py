@@ -37,7 +37,7 @@ class ETFTestRunner:
         except ValueError:
             log.error(f"Could not upload {str(path)} to ETF")
 
-        log.info(f"EFT issued upload id {upload_id} for file {str(path)}")
+        log.info(f"ETF issued upload id {upload_id} for file {str(path)}")
         return upload_id
 
     def run_test(self, test_id, test_file_path, label):
@@ -51,6 +51,11 @@ class ETFTestRunner:
             Id of started test.
         """
         file_upload_id = self.upload_test_data(test_file_path)
+
+        if file_upload_id is None:
+            log.error("Could not upload file to ETF")
+            return None
+
         payload = {
             "label": label,
             "executableTestSuiteIds": [test_id],
@@ -124,15 +129,21 @@ def check_md_conformance(etf_url, md_path, check_interval=1):
         test_file_path=md_path,
         label=label,
     )
-    while not etf_test_runner.run_ended(run_id):
-        time.sleep(check_interval)
 
-    has_passed = etf_test_runner.run_passed(run_id)
+    if run_id is not None:
+        while not etf_test_runner.run_ended(run_id):
+            time.sleep(check_interval)
+
+        has_passed = etf_test_runner.run_passed(run_id)
+    else:
+        has_passed = False
+        log.error("Could not start a test run on ETF")
+
     msg = "CHECK: Conformance of metadata for interoperability:"
-
     if not has_passed:
+        if run_id is not None:
+            etf_test_runner.save_html_run_report(run_id)
         log.error(f"{msg} FAILED")
-        etf_test_runner.save_html_run_report(run_id)
     else:
         log.info(f"{msg} PASSED")
 
