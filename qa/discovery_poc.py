@@ -1,4 +1,7 @@
 import argparse
+from datetime import datetime
+import time
+import pytz
 import logme
 
 from qa.common import (
@@ -23,6 +26,10 @@ from qa.inspire import (
     get_n2k_spatial_data,
 )
 
+from qa.etf import (
+    check_md_conformance
+)
+
 
 log = logme.log(scope='module', name='inspire_qa')
 
@@ -30,6 +37,7 @@ log = logme.log(scope='module', name='inspire_qa')
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("metadata_urls")
+    parser.add_argument("etf_url")
     args = parser.parse_args()
 
     urls = load_urls(args.metadata_urls)
@@ -41,6 +49,9 @@ def main():
         if dataset_metadata_path is None:
             log.info(f"Stopping - no metadata available from {url}")
             return
+
+        if not check_md_conformance(args.etf_url, dataset_metadata_path, 30):
+            continue
 
         dataset_metadata_tree = get_tree_from_file(dataset_metadata_path)
         nsmap = dataset_metadata_tree.getroot().nsmap

@@ -66,6 +66,7 @@ def get_filename(content_disposition):
 
 
 def fetch_url(url, save=True, save_as=None, timeout=TIMEOUT_LIMIT):
+    result = None
     errors = []
     try:
         response = requests.get(url=url, timeout=timeout, allow_redirects=True)
