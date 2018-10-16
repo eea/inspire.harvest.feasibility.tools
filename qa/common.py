@@ -71,23 +71,24 @@ def fetch_url(url, save=True, save_as=None, timeout=TIMEOUT_LIMIT):
         response = requests.get(url=url, timeout=timeout, allow_redirects=True)
         if not save:
             result = response.content
-        elif save_as is None:
-            header_file_name = get_filename(response.headers.get("content-disposition"))
-            last_segment = url.split("/")[-1]
-            if header_file_name is not None:
-                save_as = header_file_name
-            elif (
-                    "&" not in last_segment
-                    and "?" not in last_segment
-            ):
-                save_as = last_segment
-            else:
-                save_as = "download"
+        else:
+            if save_as is None:
+                header_file_name = get_filename(response.headers.get("content-disposition"))
+                last_segment = url.split("/")[-1]
+                if header_file_name is not None:
+                    save_as = header_file_name
+                elif (
+                        "&" not in last_segment
+                        and "?" not in last_segment
+                ):
+                    save_as = last_segment
+                else:
+                    save_as = "download"
 
-        result = save_as
+            result = save_as
 
-        with open(save_as, "wb") as f:
-            f.write(response.content)
+            with open(save_as, "wb") as f:
+                f.write(response.content)
 
     except requests.exceptions.Timeout:
         errors.append(f"Timeout fetching {url}")

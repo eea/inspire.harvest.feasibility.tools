@@ -120,10 +120,10 @@ def check_list_stored_queries_support(url, timeout=DEFAULT_TIMEOUT):
             return None, ["ListStoredQueries not supported"]
 
         link_el = lsq_op.find("ows:DCP/ows:HTTP/ows:Get", namespaces=nsmap)
-        if link is None:
+        if link_el is None:
             return None, ["ListStoredQueries GET link not found"]
 
-        link = link_el.attrib["xlink:href"]
+        link = link_el.attrib[f"{{{nsmap['xlink']}}}href"]
 
     except requests.exceptions.Timeout:
         errors.append("Timed out getting stored queries list")

@@ -56,7 +56,7 @@ DEFAULT_PS_LABELS_CACHE_PATH = "ps_labels.json"
 def get_ps_label(language_code):
     url = PS_URL_PATTERN.format(language_code=language_code)
     log.info(f"Getting GEMET PS label for '{language_code}': {url}")
-    label_lokup = fetch_url(url, save=False)
+    label_lokup, _ = fetch_url(url, save=False)
     doc = json.loads(label_lokup.decode("utf-8"))
     try:
         return doc["preferredLabel"]["string"]
