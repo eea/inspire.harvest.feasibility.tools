@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import pycountry
 import logme
+from lxml import etree
 
 from qa.common import (
     fetch_url,
@@ -92,10 +93,13 @@ def get_ps_labels(languages=DEFAULT_PS_LANGUAGES, cache_path=DEFAULT_PS_LABELS_C
 @check("GEMET thesaurus reference", log)
 def check_gemet_thesaurus(tree, nsmap=None):
     nsmap = nsmap or tree.getroot().nsmap
-    thesaurus_names = tree.xpath(
-        "//gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString",
-        namespaces=nsmap
-    )
+    try:
+        thesaurus_names = tree.xpath(
+            "//gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gco:CharacterString",
+            namespaces=nsmap
+        )
+    except (etree.XPathEvalError, TypeError):
+        return False
 
     for name in thesaurus_names:
         if name.text == GEMET_THESAURUS_NAME:

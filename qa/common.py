@@ -101,4 +101,7 @@ def fetch_url(url, save=True, save_as=None, timeout=TIMEOUT_LIMIT):
 
 def get_tree_from_file(file_path):
     with open(file_path, "rb") as f:
-        return etree.parse(f)
+        try:
+            return etree.parse(f)
+        except etree.XMLSyntaxError:
+            return None
