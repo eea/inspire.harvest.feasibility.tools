@@ -50,7 +50,8 @@ DEFAULT_PS_LANGUAGES = (
 )
 
 GEMET_THESAURUS_NAME = "GEMET - INSPIRE themes, version 1.0"
-
+GEMET_THESAURUS_LINK = "http://www.eionet.europa.eu/gemet/inspire_themes"
+INSPIRE_PS_THEME_LINK = "http://inspire.ec.europa.eu/theme/ps"
 DEFAULT_PS_LABELS_CACHE_PATH = "ps_labels.json"
 
 
@@ -99,33 +100,61 @@ def check_gemet_thesaurus(tree, nsmap=None):
             namespaces=nsmap
         )
     except (etree.XPathEvalError, TypeError):
-        return False
+        thesaurus_names = []
+
+    try:
+        thesaurus_anchors = tree.xpath(
+            "//gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title/gmx:Anchor",
+            namespaces=nsmap
+        )
+    except (etree.XPathEvalError, TypeError, SyntaxError):
+        thesaurus_anchors = []
 
     for name in thesaurus_names:
         if name.text == GEMET_THESAURUS_NAME:
             return True
 
+    log.info("GEMET thesaurus reference as string not found, looking for anchor.")
+
+    for anchor in thesaurus_anchors:
+        if anchor.attrib[f"{{{nsmap['xlink']}}}href"] == GEMET_THESAURUS_LINK:
+            return True
+
     return False
 
 
-@check("Protected Sites localized label", log)
+@check("Protected Sites keyword", log)
 def check_ps_keyword(tree, ps_labels=None, nsmap=None):
     ps_labels = ps_labels or get_ps_labels().values()
     nsmap = nsmap or tree.getroot().nsmap
-    descriptive_kw_sections = tree.xpath(
-        "//gmd:identificationInfo/gmd:MD_DataIdentification/gmd:descriptiveKeywords",
-        namespaces=nsmap
-    )
-
-    for section in descriptive_kw_sections:
-        md_keywords = section.findall(
-            "gmd:MD_Keywords/gmd:keyword/gco:CharacterString",
+    try:
+        keywords = tree.xpath(
+            "//https://www.eionet.europa.eu/gemet/en/inspire-theme/ps",
             namespaces=nsmap
         )
+    except (TypeError, SyntaxError):
+        return False
 
-        for kw in md_keywords:
-            if kw.text in ps_labels:
+    for kw in keywords:
+        try:
+            string_el = kw.find("gco:CharacterString", namespaces=nsmap)
+            if string_el is not None and string_el.text in ps_labels:
                 return True
+        except SyntaxError:
+            pass
+
+    log.info(
+        "Protected Sites keyword not found as string, looking for anchor."
+    )
+
+    for kw in keywords:
+        try:
+            anchor_el = kw.find("gmx:Anchor", namespaces=nsmap)
+        except SyntaxError:
+            anchor_el = None
+
+        if anchor_el is not None and anchor_el.attrib[f"{{{nsmap['xlink']}}}href"] == INSPIRE_PS_THEME_LINK:
+            return True
 
     return False
 

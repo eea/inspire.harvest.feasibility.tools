@@ -1,7 +1,7 @@
 import csv
 import re
 from functools import wraps
-
+from pathlib import Path
 import pycountry
 import requests
 import logme
@@ -97,6 +97,11 @@ def fetch_url(url, save=True, save_as=None, timeout=TIMEOUT_LIMIT):
         errors.append(f"Connection error fetching {url}")
 
     return result, errors
+
+
+def find_files(path):
+    files = sorted(Path(path).resolve().glob('*_dataset_metadata.xml*'))
+    return {pycountry.countries.get(alpha_2=f.name[:2].upper()): f for f in files}
 
 
 def get_tree_from_file(file_path):
